@@ -16,6 +16,7 @@ import common.*;
  */
 public class BlockManager
 {
+	public static int Phase1Completion = 0;
 	/**
 	 * The stack itself
 	 */
@@ -34,7 +35,7 @@ public class BlockManager
 	/**
 	 * For atomicity
 	 */
-	//private static Semaphore mutex = new Semaphore(...);
+	private static Semaphore mutex = new Semaphore(1);
 
 	/*
 	 * For synchronization
@@ -159,6 +160,9 @@ public class BlockManager
 
 
 			phase1();
+			mutex.P();
+			Phase1Completion++;
+			mutex.V();
 
 
 			try
@@ -216,7 +220,9 @@ public class BlockManager
 
 
 			phase1();
-
+			mutex.P();
+			Phase1Completion++;
+			mutex.V();
 
 			try
 			{
@@ -267,8 +273,11 @@ public class BlockManager
 		public void run()
 		{
 			phase1();
-
-
+			mutex.P();
+			Phase1Completion++;
+			mutex.V();
+			//Solves the atomicity problem for access to the phase1completion variable
+			//Only one thread may access it at a time thus preserving its validity.
 			try
 			{
 				for(int i = 0; i < siThreadSteps; i++)
@@ -296,6 +305,14 @@ public class BlockManager
 				System.exit(1);
 			}
 
+			while(Phase1Completion < 10) {
+				mutex.P();
+				mutex.V();
+			}
+			/*
+			Blocks progression until 10 threads are flagged complete.
+			Sets the stage for Phase 1 completion setup in task 4.
+			 */
 
 			phase2();
 

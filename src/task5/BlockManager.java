@@ -1,9 +1,9 @@
 package task5;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import common.BaseThread;
+import common.Semaphore;
 
 // Import (aka include) some stuff.
-import common.*;
 
 /**
  * Class BlockManager
@@ -198,11 +198,17 @@ public class BlockManager
 				reportException(e);
 				System.exit(1);
 			}
-			S1.Wait();
-			while(!(this.turnTestAndSet()));
-			S2.Wait();
+			S1.P();
+			while(!(this.turnTestAndSet())){
+				S2.P();
+				S2.V();
+			}
+			System.out.println("THREAD ID : "+ this.getTID());
+			S2.P();
+			System.out.println("PASSED ID : "+ this.getTID());
 			phase2();
-			S2.Signal();
+			S2.V();
+
 
 			System.out.println("AcquireBlock thread [TID=" + this.iTID + "] terminates.");
 		}
@@ -260,11 +266,17 @@ public class BlockManager
 				reportException(e);
 				System.exit(1);
 			}
-			S1.Wait();
-			while(!(this.turnTestAndSet()));
-			S2.Wait();
+			S1.P();
+			while(!(this.turnTestAndSet())){
+				S2.P();
+				S2.V();
+			}
+			System.out.println("THREAD ID : "+ this.getTID());
+			S2.P();
+			System.out.println("PASSED ID : "+ this.getTID());
 			phase2();
-			S2.Signal();
+			S2.V();
+
 
 			System.out.println("ReleaseBlock thread [TID=" + this.iTID + "] terminates.");
 		}
@@ -323,16 +335,17 @@ public class BlockManager
 			}
 			mutex.V();
 
-			S1.Signal();
-			S1.Signal();
+			S1.V();
+			S1.V();
 			while(!(this.turnTestAndSet())){
-				mutex.P();
-				mutex.V();
+				S2.P();
+				S2.V();
 			}
-			S2.Wait();
+			System.out.println("THREAD ID : "+ this.getTID());
+			S2.P();
+			System.out.println("PASSED ID : "+ this.getTID());
 			phase2();
-			S2.Signal();
-
+			S2.V();
 		}
 	} // class CharStackProber
 
